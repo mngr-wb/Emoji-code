@@ -217,6 +217,52 @@ textarea::placeholder {
   line-height: 1.4;
 }
 
+.table-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ctrl-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  background: #f0f0eb;
+  color: #555;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ctrl-btn:hover { background: #e4e4e0; }
+
+.ctrl-btn.active-edit {
+  background: #222;
+  color: #fff;
+}
+
+.reset-btn { color: #c0392b; }
+.reset-btn:hover { background: #fdecea; }
+
+.cipher-cell.editing { background: #fff8f0; }
+
+.emoji-input {
+  display: block;
+  width: 100%;
+  border: 1.5px solid #e4e4e0;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 2px 0;
+  outline: none;
+  margin-top: 2px;
+}
+
+.emoji-input:focus { border-color: #aaa; }
+
 .dakuten-note {
   font-size: 0.75rem;
   color: #aaa;

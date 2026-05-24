@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>メン地下暗号ツール</title>
+<title>文字暗号ツール</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
   <header>
-    <div class="title">メン地下 暗号ツール 🔐</div>
+    <div class="title">文字暗号ツール</div>
     <div class="subtitle">絵文字 ⇄ 文字 変換</div>
   </header>
 
@@ -55,6 +55,10 @@
       <div class="dakuten-note">
         💡 濁点・半濁点のある文字（が、ば、ぱ など）は、元の絵文字の後ろに <strong>"</strong> または <strong>'</strong> をつけます。<br>
         例：らくてん → 🎒🐨🐱🍅"🧸🌙🥁🔥🦑🌙🥁🍑🛷🍅（楽天 ＝ ら・く・て・ん → て" = で）
+      </div>
+      <div class="table-controls">
+        <button class="ctrl-btn" id="edit-btn" onclick="toggleEditMode()">カスタマイズ</button>
+        <button class="ctrl-btn reset-btn" id="reset-btn" onclick="resetCipher()" style="display:none">デフォルトに戻す</button>
       </div>
       <div class="cipher-grid" id="cipher-grid"></div>
     </div>

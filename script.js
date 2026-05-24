@@ -22,13 +22,17 @@ const HANDAKUTEN_MAP = {
   'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
 };
 
+let currentCipher = { ...CIPHER };
+
+(function () {
+  try {
+    const saved = localStorage.getItem('menchi-cipher-custom');
+    if (saved) Object.assign(currentCipher, JSON.parse(saved));
+  } catch (e) {}
+})();
+
 function kata2hira(str) {
   return str.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
-}
-
-const REVERSE = {};
-for (const [k, v] of Object.entries(CIPHER)) {
-  REVERSE[v] = k;
 }
 
 function encode() {
@@ -37,12 +41,12 @@ function encode() {
   let result = '';
 
   for (const ch of input) {
-    if (CIPHER[ch]) {
-      result += CIPHER[ch];
+    if (currentCipher[ch]) {
+      result += currentCipher[ch];
     } else if (DAKUTEN_MAP[ch]) {
-      result += CIPHER[DAKUTEN_MAP[ch]] + '"';
+      result += currentCipher[DAKUTEN_MAP[ch]] + '"';
     } else if (HANDAKUTEN_MAP[ch]) {
-      result += CIPHER[HANDAKUTEN_MAP[ch]] + "'";
+      result += currentCipher[HANDAKUTEN_MAP[ch]] + "'";
     } else if (ch === 'ー' || ch === '-') {
       result += 'ー';
     } else if (ch === ' ' || ch === '　') {
@@ -61,6 +65,9 @@ function encode() {
 }
 
 function decode() {
+  const reverse = {};
+  for (const [k, v] of Object.entries(currentCipher)) reverse[v] = k;
+
   const input = document.getElementById('decode-input').value;
   const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
   const segments = [...segmenter.segment(input)].map(s => s.segment);
@@ -71,8 +78,8 @@ function decode() {
     const seg = segments[i];
     const next = segments[i + 1];
 
-    if (REVERSE[seg]) {
-      const kana = REVERSE[seg];
+    if (reverse[seg]) {
+      const kana = reverse[seg];
       if (next === '"' || next === '“' || next === '”') {
         const daku = Object.entries(DAKUTEN_MAP).find(([d, s]) => s === kana);
         result += daku ? daku[0] : kana;
@@ -141,14 +148,82 @@ function toggleTable() {
   icon.classList.toggle('open', open);
 }
 
+let editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  document.getElementById('edit-btn').textContent = editMode ? '完了' : 'カスタマイズ';
+  document.getElementById('edit-btn').classList.toggle('active-edit', editMode);
+  rebuildGrid();
+}
+
+function saveCipher() {
+  const diff = {};
+  for (const [k, v] of Object.entries(currentCipher)) {
+    if (v !== CIPHER[k]) diff[k] = v;
+  }
+  const hasCustom = Object.keys(diff).length > 0;
+  if (hasCustom) {
+    localStorage.setItem('menchi-cipher-custom', JSON.stringify(diff));
+  } else {
+    localStorage.removeItem('menchi-cipher-custom');
+  }
+  document.getElementById('reset-btn').style.display = hasCustom ? '' : 'none';
+}
+
+function resetCipher() {
+  if (!confirm('デフォルトの暗号表に戻しますか？')) return;
+  currentCipher = { ...CIPHER };
+  localStorage.removeItem('menchi-cipher-custom');
+  document.getElementById('reset-btn').style.display = 'none';
+  rebuildGrid();
+}
+
+function rebuildGrid() {
+  document.getElementById('cipher-grid').innerHTML = '';
+  buildGrid();
+}
+
 function buildGrid() {
   const grid = document.getElementById('cipher-grid');
-  for (const [kana, emoji] of Object.entries(CIPHER)) {
+  for (const [kana, emoji] of Object.entries(currentCipher)) {
     const cell = document.createElement('div');
-    cell.className = 'cipher-cell';
-    cell.innerHTML = `<span class="cipher-kana">${kana}</span><span class="cipher-emoji">${emoji}</span>`;
+    cell.className = 'cipher-cell' + (editMode ? ' editing' : '');
+
+    const kanaEl = document.createElement('span');
+    kanaEl.className = 'cipher-kana';
+    kanaEl.textContent = kana;
+    cell.appendChild(kanaEl);
+
+    if (editMode) {
+      const input = document.createElement('input');
+      input.className = 'emoji-input';
+      input.value = emoji;
+      input.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        if (val) {
+          currentCipher[kana] = val;
+          saveCipher();
+        } else {
+          e.target.value = currentCipher[kana];
+        }
+      });
+      cell.appendChild(input);
+    } else {
+      const emojiEl = document.createElement('span');
+      emojiEl.className = 'cipher-emoji';
+      emojiEl.textContent = emoji;
+      cell.appendChild(emojiEl);
+    }
+
     grid.appendChild(cell);
   }
 }
+
+// 起動時にカスタム差分があればリセットボタンを表示
+(function () {
+  const saved = localStorage.getItem('menchi-cipher-custom');
+  if (saved) document.getElementById('reset-btn').style.display = '';
+})();
 
 buildGrid();
