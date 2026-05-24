@@ -22,6 +22,11 @@ const HANDAKUTEN_MAP = {
   'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
 };
 
+const SMALL_KANA_MAP = {
+  'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
+  'っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ','ゎ':'わ',
+};
+
 let currentCipher = { ...CIPHER };
 
 (function () {
@@ -41,12 +46,13 @@ function encode() {
   let result = '';
 
   for (const ch of input) {
-    if (currentCipher[ch]) {
-      result += currentCipher[ch];
-    } else if (DAKUTEN_MAP[ch]) {
-      result += currentCipher[DAKUTEN_MAP[ch]] + '"';
-    } else if (HANDAKUTEN_MAP[ch]) {
-      result += currentCipher[HANDAKUTEN_MAP[ch]] + "'";
+    const base = SMALL_KANA_MAP[ch] ?? ch;
+    if (currentCipher[base]) {
+      result += currentCipher[base];
+    } else if (DAKUTEN_MAP[base]) {
+      result += currentCipher[DAKUTEN_MAP[base]] + '"';
+    } else if (HANDAKUTEN_MAP[base]) {
+      result += currentCipher[HANDAKUTEN_MAP[base]] + "'";
     } else if (ch === 'ー' || ch === '-') {
       result += 'ー';
     } else if (ch === ' ' || ch === '　') {
