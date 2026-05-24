@@ -67,6 +67,17 @@
         <button class="ctrl-btn reset-btn" id="reset-btn" onclick="resetCipher()" style="display:none">デフォルトに戻す</button>
       </div>
       <div class="cipher-grid" id="cipher-grid"></div>
+
+      <div class="favorites-section">
+        <div class="favorites-title">★ お気に入り設定</div>
+        <div class="save-row">
+          <input type="text" id="fav-name-input" class="fav-name-input"
+                 placeholder="設定に名前をつけて保存"
+                 onkeydown="if(event.key==='Enter') saveFavorite()">
+          <button class="ctrl-btn fav-save-btn" onclick="saveFavorite()">保存</button>
+        </div>
+        <div id="favorites-list"></div>
+      </div>
     </div>
   </div>
 </div>

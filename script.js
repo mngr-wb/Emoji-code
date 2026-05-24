@@ -232,4 +232,64 @@ function buildGrid() {
   if (saved) document.getElementById('reset-btn').style.display = '';
 })();
 
+// ── お気に入り機能 ──────────────────────────────
+
+function getFavorites() {
+  try {
+    return JSON.parse(localStorage.getItem('menchi-cipher-favorites') || '[]');
+  } catch (e) { return []; }
+}
+
+function saveFavorite() {
+  const input = document.getElementById('fav-name-input');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+
+  const favorites = getFavorites();
+  const existing = favorites.findIndex(f => f.name === name);
+  if (existing >= 0) {
+    if (!confirm(`「${name}」を上書きしますか？`)) return;
+    favorites[existing].cipher = { ...currentCipher };
+  } else {
+    favorites.push({ name, cipher: { ...currentCipher } });
+  }
+  localStorage.setItem('menchi-cipher-favorites', JSON.stringify(favorites));
+  input.value = '';
+  renderFavorites();
+}
+
+function loadFavorite(index) {
+  const favorites = getFavorites();
+  if (!favorites[index]) return;
+  currentCipher = { ...CIPHER, ...favorites[index].cipher };
+  saveCipher();
+  rebuildGrid();
+}
+
+function deleteFavorite(index) {
+  const favorites = getFavorites();
+  if (!confirm(`「${favorites[index]?.name}」を削除しますか？`)) return;
+  favorites.splice(index, 1);
+  localStorage.setItem('menchi-cipher-favorites', JSON.stringify(favorites));
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favorites-list');
+  if (!list) return;
+  const favorites = getFavorites();
+  if (favorites.length === 0) {
+    list.innerHTML = '<div class="fav-empty">保存済みの設定はありません</div>';
+    return;
+  }
+  list.innerHTML = favorites.map((f, i) => `
+    <div class="fav-item">
+      <span class="fav-name">${escapeHtml(f.name)}</span>
+      <button class="ctrl-btn fav-load-btn" onclick="loadFavorite(${i})">読み込む</button>
+      <button class="ctrl-btn fav-del-btn" onclick="deleteFavorite(${i})">削除</button>
+    </div>
+  `).join('');
+}
+
 buildGrid();
+renderFavorites();
