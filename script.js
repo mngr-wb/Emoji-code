@@ -188,11 +188,13 @@ function resetCipher() {
 function rebuildGrid() {
   document.getElementById('cipher-grid').innerHTML = '';
   buildGrid();
+  renderCustomChars();
 }
 
 function buildGrid() {
   const grid = document.getElementById('cipher-grid');
   for (const [kana, emoji] of Object.entries(currentCipher)) {
+    if (!(kana in CIPHER)) continue; // 特殊文字はスキップ
     const cell = document.createElement('div');
     cell.className = 'cipher-cell' + (editMode ? ' editing' : '');
 
@@ -291,5 +293,90 @@ function renderFavorites() {
   `).join('');
 }
 
+// ── 特殊文字機能 ──────────────────────────────
+
+function renderCustomChars(addNew = false) {
+  const list = document.getElementById('custom-chars-list');
+  if (!list) return;
+
+  const entries = Object.entries(currentCipher).filter(([k]) => !(k in CIPHER));
+  list.innerHTML = '';
+
+  entries.forEach(([char, emoji]) => {
+    const row = document.createElement('div');
+    row.className = 'custom-char-row';
+    row.innerHTML = `
+      <span class="custom-char-value">${escapeHtml(char)}</span>
+      <span class="custom-char-arrow">→</span>
+      <span class="custom-char-emoji">${escapeHtml(emoji)}</span>
+    `;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'ctrl-btn fav-del-btn';
+    delBtn.textContent = '削除';
+    delBtn.addEventListener('click', () => deleteCustomChar(char));
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+
+  if (entries.length === 0 && !addNew) {
+    const empty = document.createElement('div');
+    empty.className = 'fav-empty';
+    empty.textContent = '特殊文字の変換はまだありません';
+    list.appendChild(empty);
+  }
+
+  if (addNew) {
+    const row = document.createElement('div');
+    row.className = 'custom-char-row new-row';
+
+    const charInput = document.createElement('input');
+    charInput.type = 'text';
+    charInput.className = 'custom-char-input';
+    charInput.placeholder = '文字';
+    charInput.maxLength = 10;
+
+    const arrow = document.createElement('span');
+    arrow.className = 'custom-char-arrow';
+    arrow.textContent = '→';
+
+    const emojiInput = document.createElement('input');
+    emojiInput.type = 'text';
+    emojiInput.className = 'custom-char-input emoji-wide';
+    emojiInput.placeholder = '絵文字';
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'ctrl-btn fav-load-btn';
+    addBtn.textContent = '決定';
+
+    const confirm = () => {
+      const char = charInput.value.trim();
+      const emoji = emojiInput.value.trim();
+      if (!char || !emoji) return;
+      currentCipher[char] = emoji;
+      saveCipher();
+      renderCustomChars();
+    };
+
+    addBtn.addEventListener('click', confirm);
+    emojiInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); });
+    charInput.addEventListener('keydown', e => { if (e.key === 'Enter') emojiInput.focus(); });
+
+    row.append(charInput, arrow, emojiInput, addBtn);
+    list.appendChild(row);
+    charInput.focus();
+  }
+}
+
+function addCustomChar() {
+  renderCustomChars(true);
+}
+
+function deleteCustomChar(char) {
+  delete currentCipher[char];
+  saveCipher();
+  renderCustomChars();
+}
+
 buildGrid();
 renderFavorites();
+renderCustomChars();
