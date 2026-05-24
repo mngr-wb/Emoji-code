@@ -127,6 +127,7 @@ textarea::placeholder {
   font-size: 1.5rem;
   line-height: 2;
   word-break: break-all;
+  white-space: pre-wrap;
   color: #222;
 }
 
