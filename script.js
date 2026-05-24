@@ -140,10 +140,10 @@ function copyOutput(id) {
 
 function setMode(mode) {
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0) === (mode === 'encode'));
+    t.classList.toggle('active', (i === 0) === (mode === 'decode'));
   });
-  document.getElementById('encode-section').style.display = mode === 'encode' ? '' : 'none';
   document.getElementById('decode-section').style.display = mode === 'decode' ? '' : 'none';
+  document.getElementById('encode-section').style.display = mode === 'encode' ? '' : 'none';
 }
 
 function toggleTable() {

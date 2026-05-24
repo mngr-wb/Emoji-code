@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <meta property="og:title" content="文字暗号ツール">
 <meta property="og:description" content="ひらがな・カタカナを絵文字に変換する暗号ツール。オリジナルの暗号表を作成してシェアできます。">
-<meta property="og:image" content="https://mngr-wb.github.io/Emoji-code/banner.svg">
+<meta property="og:image" content="https://mngr-wb.github.io/Emoji-code/banner.png">
 <meta property="og:url" content="https://mngr-wb.github.io/Emoji-code/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -21,24 +21,11 @@
 
   <div class="card">
     <div class="mode-tabs">
-      <button class="tab active" onclick="setMode('encode')">文字 → 絵文字</button>
-      <button class="tab" onclick="setMode('decode')">絵文字 → 文字</button>
+      <button class="tab active" onclick="setMode('decode')">絵文字 → 文字</button>
+      <button class="tab" onclick="setMode('encode')">文字 → 絵文字</button>
     </div>
 
-    <div id="encode-section">
-      <label>入力（ひらがな・カタカナ）</label>
-      <textarea id="encode-input" placeholder="例：らくてん" oninput="encode()" rows="3"></textarea>
-      <div class="arrow">↓</div>
-      <label>変換結果</label>
-      <div class="output-wrap">
-        <div class="output-box" id="encode-output">
-          <span class="placeholder-text">ここに絵文字が表示されます</span>
-        </div>
-        <button class="copy-btn" onclick="copyOutput('encode-output')">コピー</button>
-      </div>
-    </div>
-
-    <div id="decode-section" style="display:none">
+    <div id="decode-section">
       <label>入力（絵文字を貼り付け）</label>
       <textarea id="decode-input" placeholder='例：🎒🐨🐱🍅"🧸🌙🥁🔥🦑🌙🥁🍑🛷🍅' oninput="decode()" rows="3"></textarea>
       <div class="arrow">↓</div>
@@ -48,6 +35,19 @@
           <span class="placeholder-text">ここに文字が表示されます</span>
         </div>
         <button class="copy-btn" onclick="copyOutput('decode-output')">コピー</button>
+      </div>
+    </div>
+
+    <div id="encode-section" style="display:none">
+      <label>入力（ひらがな・カタカナ）</label>
+      <textarea id="encode-input" placeholder="例：らくてん" oninput="encode()" rows="3"></textarea>
+      <div class="arrow">↓</div>
+      <label>変換結果</label>
+      <div class="output-wrap">
+        <div class="output-box" id="encode-output">
+          <span class="placeholder-text">ここに絵文字が表示されます</span>
+        </div>
+        <button class="copy-btn" onclick="copyOutput('encode-output')">コピー</button>
       </div>
     </div>
   </div>
