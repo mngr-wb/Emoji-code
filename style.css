@@ -330,9 +330,9 @@ textarea::placeholder {
 .custom-char-input::placeholder { color: #ccc; font-size: 0.78rem; }
 
 .favorites-section {
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0eb;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0eb;
 }
 
 .favorites-title {

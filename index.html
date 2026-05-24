@@ -58,17 +58,6 @@
       <div class="toggle-icon" id="toggle-icon">▼</div>
     </div>
     <div id="table-body" style="display:none">
-      <div class="favorites-section">
-        <div class="favorites-title">★ お気に入り設定</div>
-        <div class="save-row">
-          <input type="text" id="fav-name-input" class="fav-name-input"
-                 placeholder="設定に名前をつけて保存"
-                 onkeydown="if(event.key==='Enter') saveFavorite()">
-          <button class="ctrl-btn fav-save-btn" onclick="saveFavorite()">保存</button>
-        </div>
-        <div id="favorites-list"></div>
-      </div>
-
       <div class="dakuten-note">
         💡 濁点・半濁点のある文字（が、ば、ぱ など）は、元の絵文字の後ろに <strong>"</strong> または <strong>'</strong> をつけます。<br>
         例：らくてん → 🎒🐨🐱🍅"🧸🌙🥁🔥🦑🌙🥁🍑🛷🍅（楽天 ＝ ら・く・て・ん → て" = で）
@@ -85,6 +74,17 @@
           <button class="ctrl-btn" onclick="addCustomChar()">追加</button>
         </div>
         <div id="custom-chars-list"></div>
+      </div>
+
+      <div class="favorites-section">
+        <div class="favorites-title">★ お気に入り設定</div>
+        <div class="save-row">
+          <input type="text" id="fav-name-input" class="fav-name-input"
+                 placeholder="設定に名前をつけて保存"
+                 onkeydown="if(event.key==='Enter') saveFavorite()">
+          <button class="ctrl-btn fav-save-btn" onclick="saveFavorite()">保存</button>
+        </div>
+        <div id="favorites-list"></div>
       </div>
     </div>
   </div>
