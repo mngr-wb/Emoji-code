@@ -42,6 +42,77 @@ header {
   border: 1px solid #e8e8e4;
 }
 
+.monetize-card,
+.policy-card {
+  background: #fff;
+  border: 1px solid #e8e8e4;
+  border-radius: 14px;
+}
+
+.monetize-card {
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.ad-label {
+  display: inline-block;
+  color: #888;
+  background: #f0f0eb;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ad-link {
+  display: block;
+  color: #222;
+  text-decoration: none;
+  background: #fafaf8;
+  border: 1px solid #f0f0eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ad-link:hover {
+  background: #fff;
+  border-color: #deded8;
+}
+
+.ad-title {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ad-copy,
+.ad-disclosure {
+  color: #888;
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.ad-disclosure {
+  margin-top: 8px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #fff;
+  background: #222;
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .mode-tabs {
   display: flex;
   gap: 6px;
@@ -407,4 +478,56 @@ textarea::placeholder {
   background: #fafaf8;
   border-radius: 8px;
   border: 1px solid #f0f0eb;
+}
+
+.site-footer {
+  padding: 18px 4px 0;
+  text-align: center;
+}
+
+.site-footer a {
+  color: #999;
+  font-size: 0.74rem;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: #555;
+}
+
+.policy-page {
+  max-width: 680px;
+}
+
+.policy-card {
+  padding: 22px;
+}
+
+.policy-card h1 {
+  color: #222;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.policy-card h2 {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.policy-card p {
+  color: #666;
+  font-size: 0.86rem;
+  line-height: 1.9;
+}
+
+.policy-updated {
+  margin-top: 20px;
+}
+
+.back-link {
+  margin-top: 16px;
 }
