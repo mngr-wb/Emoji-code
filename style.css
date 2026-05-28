@@ -232,6 +232,51 @@ textarea::placeholder {
   line-height: 2;
 }
 
+.share-panel {
+  margin-top: 10px;
+}
+
+.share-panel[hidden] {
+  display: none;
+}
+
+.share-label {
+  color: #aaa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 7px;
+}
+
+.share-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.share-btn {
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 7px 8px;
+  transition: filter 0.15s, transform 0.15s;
+}
+
+.share-btn:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.share-x { background: #111; }
+.share-line { background: #06c755; }
+.share-bluesky { background: #1685fe; }
+.share-native { background: #666; }
+
 .table-card {
   background: #fff;
   border-radius: 14px;

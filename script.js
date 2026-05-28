@@ -68,6 +68,7 @@ function encode() {
   } else {
     box.innerHTML = `<span class="placeholder-text">ここに絵文字が表示されます</span>`;
   }
+  updateSharePanel('encode-output', 'encode-share');
 }
 
 function decode() {
@@ -120,6 +121,7 @@ function decode() {
   } else {
     box.innerHTML = `<span class="placeholder-text">ここに文字が表示されます</span>`;
   }
+  updateSharePanel('decode-output', 'decode-share');
 }
 
 function escapeHtml(str) {
@@ -130,12 +132,105 @@ function copyOutput(id) {
   const el = document.getElementById(id);
   const span = el.querySelector('span:not(.placeholder-text)');
   if (!span) return;
-  navigator.clipboard.writeText(span.textContent).then(() => {
-    const btn = el.parentElement.querySelector('.copy-btn');
-    const prev = btn.textContent;
-    btn.textContent = '✓ 完了';
-    setTimeout(() => btn.textContent = prev, 1500);
+  copyText(span.textContent).then(() => {
+    showCopyStatus(el, '✓ 完了');
+  }).catch(() => {
+    selectOutputText(span);
+    showCopyStatus(el, '選択中');
   });
+}
+
+function copyText(text) {
+  if (copyTextWithTextarea(text)) return Promise.resolve();
+
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(text);
+  }
+
+  return Promise.reject();
+}
+
+function copyTextWithTextarea(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '0';
+  textarea.style.width = '1px';
+  textarea.style.height = '1px';
+  textarea.style.opacity = '0';
+  textarea.style.pointerEvents = 'none';
+  document.body.appendChild(textarea);
+  textarea.focus({ preventScroll: true });
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch (e) {
+    copied = false;
+  }
+  document.body.removeChild(textarea);
+  return copied;
+}
+
+function showCopyStatus(outputEl, text) {
+  const btn = outputEl.parentElement.querySelector('.copy-btn');
+  const prev = btn.textContent;
+  btn.textContent = text;
+  setTimeout(() => btn.textContent = prev, 1500);
+}
+
+function selectOutputText(span) {
+  const range = document.createRange();
+  range.selectNodeContents(span);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function getOutputText(id) {
+  const el = document.getElementById(id);
+  const span = el?.querySelector('span:not(.placeholder-text)');
+  return span?.textContent.trim() || '';
+}
+
+function updateSharePanel(outputId, panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  panel.hidden = !getOutputText(outputId);
+}
+
+function buildShareText(outputId) {
+  const text = getOutputText(outputId);
+  return `${text}\n\n文字暗号ツールで変換しました\n${location.origin}${location.pathname}`;
+}
+
+function shareOutput(outputId, service) {
+  const text = buildShareText(outputId);
+  if (!getOutputText(outputId)) return;
+
+  if (service === 'native' && navigator.share) {
+    navigator.share({
+      title: '文字暗号ツール',
+      text,
+      url: location.href,
+    }).catch(() => {});
+    return;
+  }
+
+  const encodedText = encodeURIComponent(text);
+  const encodedUrl = encodeURIComponent(location.href);
+  const urls = {
+    x: `https://twitter.com/intent/tweet?text=${encodedText}`,
+    line: `https://line.me/R/msg/text/?${encodedText}`,
+    bluesky: `https://bsky.app/intent/compose?text=${encodedText}`,
+    native: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+  };
+
+  window.location.href = urls[service];
 }
 
 function setMode(mode) {
