@@ -200,7 +200,11 @@ function getOutputText(id) {
 function updateSharePanel(outputId, panelId) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
-  panel.hidden = !getOutputText(outputId);
+  const hasText = !!getOutputText(outputId);
+  panel.classList.toggle('is-disabled', !hasText);
+  panel.querySelectorAll('button').forEach((button) => {
+    button.disabled = !hasText;
+  });
 }
 
 function buildShareText(outputId) {

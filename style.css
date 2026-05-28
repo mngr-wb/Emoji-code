@@ -236,8 +236,8 @@ textarea::placeholder {
   margin-top: 10px;
 }
 
-.share-panel[hidden] {
-  display: none;
+.share-panel.is-disabled {
+  opacity: 0.55;
 }
 
 .share-label {
@@ -270,6 +270,12 @@ textarea::placeholder {
 .share-btn:hover {
   filter: brightness(0.96);
   transform: translateY(-1px);
+}
+
+.share-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+  transform: none;
 }
 
 .share-x { background: #111; }

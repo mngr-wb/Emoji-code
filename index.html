@@ -38,13 +38,13 @@
         </div>
         <button class="copy-btn" onclick="copyOutput('decode-output')">コピー</button>
       </div>
-      <div class="share-panel" id="decode-share" hidden>
+      <div class="share-panel is-disabled" id="decode-share">
         <div class="share-label">結果を共有</div>
         <div class="share-buttons">
-          <button class="share-btn share-x" onclick="shareOutput('decode-output', 'x')">X</button>
-          <button class="share-btn share-line" onclick="shareOutput('decode-output', 'line')">LINE</button>
-          <button class="share-btn share-bluesky" onclick="shareOutput('decode-output', 'bluesky')">Bluesky</button>
-          <button class="share-btn share-native" onclick="shareOutput('decode-output', 'native')">共有</button>
+          <button class="share-btn share-x" onclick="shareOutput('decode-output', 'x')" disabled>X</button>
+          <button class="share-btn share-line" onclick="shareOutput('decode-output', 'line')" disabled>LINE</button>
+          <button class="share-btn share-bluesky" onclick="shareOutput('decode-output', 'bluesky')" disabled>Bluesky</button>
+          <button class="share-btn share-native" onclick="shareOutput('decode-output', 'native')" disabled>共有</button>
         </div>
       </div>
     </div>
@@ -60,13 +60,13 @@
         </div>
         <button class="copy-btn" onclick="copyOutput('encode-output')">コピー</button>
       </div>
-      <div class="share-panel" id="encode-share" hidden>
+      <div class="share-panel is-disabled" id="encode-share">
         <div class="share-label">結果を共有</div>
         <div class="share-buttons">
-          <button class="share-btn share-x" onclick="shareOutput('encode-output', 'x')">X</button>
-          <button class="share-btn share-line" onclick="shareOutput('encode-output', 'line')">LINE</button>
-          <button class="share-btn share-bluesky" onclick="shareOutput('encode-output', 'bluesky')">Bluesky</button>
-          <button class="share-btn share-native" onclick="shareOutput('encode-output', 'native')">共有</button>
+          <button class="share-btn share-x" onclick="shareOutput('encode-output', 'x')" disabled>X</button>
+          <button class="share-btn share-line" onclick="shareOutput('encode-output', 'line')" disabled>LINE</button>
+          <button class="share-btn share-bluesky" onclick="shareOutput('encode-output', 'bluesky')" disabled>Bluesky</button>
+          <button class="share-btn share-native" onclick="shareOutput('encode-output', 'native')" disabled>共有</button>
         </div>
       </div>
     </div>
@@ -123,6 +123,6 @@
   </footer>
 </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260529"></script>
 </body>
 </html>
