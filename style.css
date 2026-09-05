@@ -232,6 +232,41 @@ textarea::placeholder {
   line-height: 2;
 }
 
+.input-actions,
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.mini-btn,
+.reverse-btn {
+  border: 1px solid #e4e4e0;
+  border-radius: 7px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 10px;
+}
+
+.mini-btn:hover,
+.reverse-btn:hover { background: #f5f5f0; }
+
+.reverse-btn {
+  margin-top: 8px;
+}
+
+.result-actions .reverse-btn { margin-top: 0; }
+
+.share-link-btn {
+  border-color: #222;
+  color: #222;
+}
+
 .share-panel {
   margin-top: 10px;
 }
@@ -343,6 +378,7 @@ textarea::placeholder {
 
 .table-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -361,6 +397,43 @@ textarea::placeholder {
 }
 
 .ctrl-btn:hover { background: #e4e4e0; }
+
+.import-btn {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.settings-status {
+  min-height: 1.4em;
+  margin-bottom: 8px;
+  color: #2980b9;
+  font-size: 0.75rem;
+}
+
+.share-status {
+  min-height: 1.4em;
+  margin-top: 6px;
+  color: #2980b9;
+  font-size: 0.75rem;
+}
+
+.settings-status.is-error,
+.share-status.is-error { color: #c0392b; }
 
 .ctrl-btn.active-edit {
   background: #222;
@@ -581,4 +654,12 @@ textarea::placeholder {
 
 .back-link {
   margin-top: 16px;
+}
+
+@media (max-width: 420px) {
+  body { padding: 20px 12px 44px; }
+  .card,
+  .table-card { padding: 16px; }
+  .share-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tab { font-size: 0.8rem; }
 }

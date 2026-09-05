@@ -12,6 +12,7 @@ const CIPHER = {
 };
 
 const DAKUTEN_MAP = {
+  'ゔ':'う',
   'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
   'ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ',
   'だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と',
@@ -24,15 +25,24 @@ const HANDAKUTEN_MAP = {
 
 const SMALL_KANA_MAP = {
   'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
-  'っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ','ゎ':'わ',
+  'っ':'つ','ゃ':'や','ゅ':'ゆ','ょ':'よ','ゎ':'わ','ゕ':'か','ゖ':'け',
 };
+
+const SMALL_KANA_REVERSE = Object.fromEntries(
+  Object.entries(SMALL_KANA_MAP).map(([small, large]) => [large, small])
+);
+
+const CONFIG_VERSION = 1;
 
 let currentCipher = { ...CIPHER };
 
 (function () {
   try {
     const saved = localStorage.getItem('menchi-cipher-custom');
-    if (saved) Object.assign(currentCipher, JSON.parse(saved));
+    if (saved) {
+      const candidate = normalizeCipher({ ...CIPHER, ...JSON.parse(saved) });
+      if (validateCipher(candidate).ok) currentCipher = candidate;
+    }
   } catch (e) {}
 })();
 
@@ -40,19 +50,82 @@ function kata2hira(str) {
   return str.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
 }
 
-function encode() {
-  const raw = document.getElementById('encode-input').value;
+function normalizeCipher(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('暗号表の形式が正しくありません');
+  }
+  const entries = Object.entries(value);
+  if (entries.length > 200) throw new Error('暗号表の項目が多すぎます');
+  const normalized = {};
+  for (const [key, emoji] of entries) {
+    const normalizedKey = kata2hira(key.trim());
+    if (!normalizedKey || normalizedKey.length > 20 || typeof emoji !== 'string' || !emoji.trim() || emoji.length > 80) {
+      throw new Error('文字または絵文字の形式が正しくありません');
+    }
+    if (normalizedKey === '__proto__' || normalizedKey === 'constructor' || normalizedKey === 'prototype') {
+      throw new Error('使用できない文字名が含まれています');
+    }
+    if (normalizedKey in normalized) throw new Error(`「${normalizedKey}」の設定が重複しています`);
+    normalized[normalizedKey] = emoji.trim();
+  }
+  return normalized;
+}
+
+function validateCipher(cipher) {
+  const used = new Map();
+  for (const [key, emoji] of Object.entries(cipher)) {
+    if (/^[\^"'“”‘’]/u.test(emoji)) {
+      return { ok: false, error: `「${key}」の絵文字は記号（^・引用符）から始められません` };
+    }
+    if (used.has(emoji)) {
+      return { ok: false, error: `「${used.get(emoji)}」と「${key}」に同じ絵文字が使われています` };
+    }
+    used.set(emoji, key);
+  }
+  const entries = [...used.entries()];
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      const [firstEmoji, firstKey] = entries[i];
+      const [secondEmoji, secondKey] = entries[j];
+      if (firstEmoji.startsWith(secondEmoji) || secondEmoji.startsWith(firstEmoji)) {
+        return {
+          ok: false,
+          error: `「${firstKey}」と「${secondKey}」の絵文字は先頭部分が重なるため使えません`,
+        };
+      }
+    }
+  }
+  return { ok: true, error: '' };
+}
+
+function getCustomKeys(cipher) {
+  return Object.keys(cipher)
+    .filter(key => !(key in CIPHER))
+    .sort((a, b) => b.length - a.length);
+}
+
+function encodeText(raw, cipher = currentCipher) {
   const input = kata2hira(raw);
   let result = '';
+  const customKeys = getCustomKeys(cipher);
 
-  for (const ch of input) {
-    const base = SMALL_KANA_MAP[ch] ?? ch;
-    if (currentCipher[base]) {
-      result += currentCipher[base];
-    } else if (DAKUTEN_MAP[base]) {
-      result += currentCipher[DAKUTEN_MAP[base]] + '"';
-    } else if (HANDAKUTEN_MAP[base]) {
-      result += currentCipher[HANDAKUTEN_MAP[base]] + "'";
+  for (let i = 0; i < input.length;) {
+    const customKey = customKeys.find(key => input.startsWith(key, i));
+    if (customKey) {
+      result += cipher[customKey];
+      i += customKey.length;
+      continue;
+    }
+
+    const ch = input[i];
+    if (SMALL_KANA_MAP[ch] && cipher[SMALL_KANA_MAP[ch]]) {
+      result += cipher[SMALL_KANA_MAP[ch]] + '^';
+    } else if (DAKUTEN_MAP[ch] && cipher[DAKUTEN_MAP[ch]]) {
+      result += cipher[DAKUTEN_MAP[ch]] + '"';
+    } else if (HANDAKUTEN_MAP[ch] && cipher[HANDAKUTEN_MAP[ch]]) {
+      result += cipher[HANDAKUTEN_MAP[ch]] + "'";
+    } else if (cipher[ch]) {
+      result += cipher[ch];
     } else if (ch === 'ー' || ch === '-') {
       result += 'ー';
     } else if (ch === ' ' || ch === '　') {
@@ -60,7 +133,15 @@ function encode() {
     } else {
       result += ch;
     }
+    i++;
   }
+
+  return result;
+}
+
+function encode() {
+  const raw = document.getElementById('encode-input').value;
+  const result = encodeText(raw);
 
   const box = document.getElementById('encode-output');
   if (result) {
@@ -71,52 +152,57 @@ function encode() {
   updateSharePanel('encode-output', 'encode-share');
 }
 
-function decode() {
-  const reverse = {};
-  for (const [k, v] of Object.entries(currentCipher)) reverse[v] = k;
-
-  const input = document.getElementById('decode-input').value;
-  const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
-  const segments = [...segmenter.segment(input)].map(s => s.segment);
-
+function decodeText(input, cipher = currentCipher) {
+  const tokens = Object.entries(cipher)
+    .map(([key, emoji]) => ({ key, emoji }))
+    .sort((a, b) => b.emoji.length - a.emoji.length);
   let result = '';
   let i = 0;
-  while (i < segments.length) {
-    const seg = segments[i];
-    const next = segments[i + 1];
-
-    if (reverse[seg]) {
-      const kana = reverse[seg];
+  while (i < input.length) {
+    const match = tokens.find(({ emoji }) => input.startsWith(emoji, i));
+    if (match) {
+      const kana = match.key;
+      const nextIndex = i + match.emoji.length;
+      const next = input[nextIndex];
+      if (next === '^' && SMALL_KANA_REVERSE[kana]) {
+        result += SMALL_KANA_REVERSE[kana];
+        i = nextIndex + 1;
+        continue;
+      }
       if (next === '"' || next === '“' || next === '”') {
         const daku = Object.entries(DAKUTEN_MAP).find(([d, s]) => s === kana);
-        result += daku ? daku[0] : kana;
-        i += 2;
-        continue;
+        if (daku) {
+          result += daku[0];
+          i = nextIndex + 1;
+          continue;
+        }
       }
       if (next === "'" || next === '‘' || next === '’') {
         const handaku = Object.entries(HANDAKUTEN_MAP).find(([h, s]) => s === kana);
-        result += handaku ? handaku[0] : kana;
-        i += 2;
-        continue;
+        if (handaku) {
+          result += handaku[0];
+          i = nextIndex + 1;
+          continue;
+        }
       }
       result += kana;
-    } else if (seg === ' ' || seg === '　') {
-      result += ' ';
-    } else if (seg === '\n') {
-      result += '\n';
-    } else if (seg === '"' || seg === '“' || seg === '”' ||
-               seg === "'" || seg === '‘' || seg === '’') {
-      result += seg;
-    } else if (seg === 'ー') {
-      result += 'ー';
-    } else {
-      result += seg;
+      i = nextIndex;
+      continue;
     }
-    i++;
+    const character = String.fromCodePoint(input.codePointAt(i));
+    result += character;
+    i += character.length;
   }
 
+  return result;
+}
+
+function decode() {
+  const input = document.getElementById('decode-input').value;
+  const result = decodeText(input);
+
   const box = document.getElementById('decode-output');
-  if (result.trim()) {
+  if (result) {
     box.innerHTML = `<span>${escapeHtml(result)}</span>`;
   } else {
     box.innerHTML = `<span class="placeholder-text">ここに文字が表示されます</span>`;
@@ -194,7 +280,52 @@ function selectOutputText(span) {
 function getOutputText(id) {
   const el = document.getElementById(id);
   const span = el?.querySelector('span:not(.placeholder-text)');
-  return span?.textContent.trim() || '';
+  return span?.textContent || '';
+}
+
+function setSettingsStatus(message, isError = false) {
+  const status = document.getElementById('settings-status');
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle('is-error', isError);
+}
+
+function setShareStatus(message, isError = false) {
+  const status = document.getElementById('share-status');
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle('is-error', isError);
+}
+
+function refreshConversions() {
+  encode();
+  decode();
+}
+
+function tryExample(mode) {
+  if (mode === 'encode') {
+    document.getElementById('encode-input').value = 'きゃっと';
+    encode();
+  } else {
+    document.getElementById('decode-input').value = encodeText('きゃっと');
+    decode();
+  }
+}
+
+function clearInput(mode) {
+  const input = document.getElementById(`${mode}-input`);
+  input.value = '';
+  mode === 'encode' ? encode() : decode();
+  input.focus();
+}
+
+function sendToOtherMode(mode) {
+  const output = getOutputText(`${mode}-output`);
+  if (!output) return;
+  const targetMode = mode === 'encode' ? 'decode' : 'encode';
+  document.getElementById(`${targetMode}-input`).value = output;
+  setMode(targetMode);
+  targetMode === 'encode' ? encode() : decode();
 }
 
 function updateSharePanel(outputId, panelId) {
@@ -207,26 +338,83 @@ function updateSharePanel(outputId, panelId) {
   });
 }
 
+function getCipherOverrides(cipher = currentCipher) {
+  return Object.fromEntries(Object.entries(cipher).filter(([key, emoji]) => CIPHER[key] !== emoji));
+}
+
+function encodeSharePayload(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let binary = '';
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function decodeSharePayload(value) {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function buildDecodeLink(message) {
+  const payload = {
+    version: CONFIG_VERSION,
+    message,
+    cipher: getCipherOverrides(),
+  };
+  const url = `${location.origin}${location.pathname}#share=${encodeSharePayload(payload)}`;
+  if (url.length > 8000) throw new Error('暗号表が大きいため共有リンクを作成できません');
+  return url;
+}
+
 function buildShareText(outputId) {
   const text = getOutputText(outputId);
-  return `${text}\n\n文字暗号ツールで変換しました\n${location.origin}${location.pathname}`;
+  const url = outputId === 'encode-output'
+    ? buildDecodeLink(text)
+    : `${location.origin}${location.pathname}`;
+  return `${text}\n\n文字暗号ツールで変換しました\n${url}`;
+}
+
+function copyShareLink() {
+  const message = getOutputText('encode-output');
+  if (!message) return;
+  try {
+    copyText(buildDecodeLink(message)).then(() => {
+      setShareStatus('解読リンクをコピーしました');
+    }).catch(() => {
+      setShareStatus('リンクをコピーできませんでした', true);
+    });
+  } catch (error) {
+    setShareStatus(error.message, true);
+  }
 }
 
 function shareOutput(outputId, service) {
-  const text = buildShareText(outputId);
   if (!getOutputText(outputId)) return;
+  let text;
+  let shareUrl;
+  try {
+    text = buildShareText(outputId);
+    shareUrl = outputId === 'encode-output'
+      ? buildDecodeLink(getOutputText(outputId))
+      : location.href;
+  } catch (error) {
+    setShareStatus(error.message, true);
+    return;
+  }
 
   if (service === 'native' && navigator.share) {
     navigator.share({
       title: '文字暗号ツール',
-      text,
-      url: location.href,
+      text: getOutputText(outputId),
+      url: shareUrl,
     }).catch(() => {});
     return;
   }
 
   const encodedText = encodeURIComponent(text);
-  const encodedUrl = encodeURIComponent(location.href);
+  const encodedUrl = encodeURIComponent(shareUrl);
   const urls = {
     x: `https://twitter.com/intent/tweet?text=${encodedText}`,
     line: `https://line.me/R/msg/text/?${encodedText}`,
@@ -263,6 +451,11 @@ function toggleEditMode() {
 }
 
 function saveCipher() {
+  const validation = validateCipher(currentCipher);
+  if (!validation.ok) {
+    setSettingsStatus(validation.error, true);
+    return false;
+  }
   const diff = {};
   for (const [k, v] of Object.entries(currentCipher)) {
     if (v !== CIPHER[k]) diff[k] = v;
@@ -274,6 +467,8 @@ function saveCipher() {
     localStorage.removeItem('menchi-cipher-custom');
   }
   document.getElementById('reset-btn').style.display = hasCustom ? '' : 'none';
+  refreshConversions();
+  return true;
 }
 
 function resetCipher() {
@@ -282,6 +477,8 @@ function resetCipher() {
   localStorage.removeItem('menchi-cipher-custom');
   document.getElementById('reset-btn').style.display = 'none';
   rebuildGrid();
+  refreshConversions();
+  setSettingsStatus('デフォルトの暗号表に戻しました');
 }
 
 function rebuildGrid() {
@@ -309,8 +506,16 @@ function buildGrid() {
       input.addEventListener('change', (e) => {
         const val = e.target.value.trim();
         if (val) {
-          currentCipher[kana] = val;
+          const candidate = { ...currentCipher, [kana]: val };
+          const validation = validateCipher(candidate);
+          if (!validation.ok) {
+            e.target.value = currentCipher[kana];
+            setSettingsStatus(validation.error, true);
+            return;
+          }
+          currentCipher = candidate;
           saveCipher();
+          setSettingsStatus(`「${kana}」の設定を保存しました`);
         } else {
           e.target.value = currentCipher[kana];
         }
@@ -362,9 +567,17 @@ function saveFavorite() {
 function loadFavorite(index) {
   const favorites = getFavorites();
   if (!favorites[index]) return;
-  currentCipher = { ...CIPHER, ...favorites[index].cipher };
+  const candidate = normalizeCipher({ ...CIPHER, ...favorites[index].cipher });
+  const validation = validateCipher(candidate);
+  if (!validation.ok) {
+    setSettingsStatus(validation.error, true);
+    return;
+  }
+  currentCipher = candidate;
   saveCipher();
   rebuildGrid();
+  refreshConversions();
+  setSettingsStatus(`「${favorites[index].name}」を読み込みました`);
 }
 
 function deleteFavorite(index) {
@@ -448,12 +661,19 @@ function renderCustomChars(addNew = false) {
     addBtn.textContent = '決定';
 
     const confirm = () => {
-      const char = charInput.value.trim();
+      const char = kata2hira(charInput.value.trim());
       const emoji = emojiInput.value.trim();
       if (!char || !emoji) return;
-      currentCipher[char] = emoji;
+      const candidate = { ...currentCipher, [char]: emoji };
+      const validation = validateCipher(candidate);
+      if (!validation.ok) {
+        setSettingsStatus(validation.error, true);
+        return;
+      }
+      currentCipher = candidate;
       saveCipher();
       renderCustomChars();
+      setSettingsStatus(`「${char}」の特殊変換を追加しました`);
     };
 
     addBtn.addEventListener('click', confirm);
@@ -474,8 +694,72 @@ function deleteCustomChar(char) {
   delete currentCipher[char];
   saveCipher();
   renderCustomChars();
+  refreshConversions();
+  setSettingsStatus(`「${char}」の特殊変換を削除しました`);
+}
+
+function exportCipher() {
+  const data = JSON.stringify({ version: CONFIG_VERSION, cipher: currentCipher }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'emoji-code-settings.json';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setSettingsStatus('設定ファイルを書き出しました');
+}
+
+async function importCipher(event) {
+  const input = event.target;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (data.version !== CONFIG_VERSION || !data.cipher) {
+      throw new Error('対応していない設定ファイルです');
+    }
+    const imported = normalizeCipher(data.cipher);
+    const candidate = normalizeCipher({ ...CIPHER, ...imported });
+    const validation = validateCipher(candidate);
+    if (!validation.ok) throw new Error(validation.error);
+    currentCipher = candidate;
+    saveCipher();
+    rebuildGrid();
+    refreshConversions();
+    setSettingsStatus('設定ファイルを読み込みました');
+  } catch (error) {
+    setSettingsStatus(error.message || '設定ファイルを読み込めませんでした', true);
+  } finally {
+    input.value = '';
+  }
+}
+
+function loadSharedMessage() {
+  if (!location.hash.startsWith('#share=')) return;
+  try {
+    const payload = decodeSharePayload(location.hash.slice(7));
+    if (payload.version !== CONFIG_VERSION || typeof payload.message !== 'string') {
+      throw new Error('対応していない共有リンクです');
+    }
+    const overrides = normalizeCipher(payload.cipher || {});
+    const candidate = normalizeCipher({ ...CIPHER, ...overrides });
+    const validation = validateCipher(candidate);
+    if (!validation.ok) throw new Error(validation.error);
+    currentCipher = candidate;
+    rebuildGrid();
+    document.getElementById('decode-input').value = payload.message;
+    setMode('decode');
+    decode();
+    setSettingsStatus('共有された暗号表で解読しました（端末には保存していません）');
+  } catch (error) {
+    setSettingsStatus(error.message || '共有リンクを読み込めませんでした', true);
+  }
 }
 
 buildGrid();
 renderFavorites();
 renderCustomChars();
+loadSharedMessage();

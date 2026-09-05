@@ -29,7 +29,11 @@
 
     <div id="decode-section">
       <label>入力（絵文字を貼り付け）</label>
-      <textarea id="decode-input" placeholder='例：🎒🐨🐱🍅"🧸🌙🥁🔥🦑🌙🥁🍑🛷🍅' oninput="decode()" rows="3"></textarea>
+      <textarea id="decode-input" placeholder="例：🎒🐻✋🆖" oninput="decode()" rows="3"></textarea>
+      <div class="input-actions">
+        <button class="mini-btn" onclick="tryExample('decode')">例文で試す</button>
+        <button class="mini-btn" onclick="clearInput('decode')">入力を消す</button>
+      </div>
       <div class="arrow">↓</div>
       <label>変換結果</label>
       <div class="output-wrap">
@@ -38,6 +42,7 @@
         </div>
         <button class="copy-btn" onclick="copyOutput('decode-output')">コピー</button>
       </div>
+      <button class="reverse-btn" onclick="sendToOtherMode('decode')">結果を絵文字に変換</button>
       <div class="share-panel is-disabled" id="decode-share">
         <div class="share-label">結果を共有</div>
         <div class="share-buttons">
@@ -52,6 +57,10 @@
     <div id="encode-section" style="display:none">
       <label>入力（ひらがな・カタカナ）</label>
       <textarea id="encode-input" placeholder="例：らくてん" oninput="encode()" rows="3"></textarea>
+      <div class="input-actions">
+        <button class="mini-btn" onclick="tryExample('encode')">例文で試す</button>
+        <button class="mini-btn" onclick="clearInput('encode')">入力を消す</button>
+      </div>
       <div class="arrow">↓</div>
       <label>変換結果</label>
       <div class="output-wrap">
@@ -60,6 +69,11 @@
         </div>
         <button class="copy-btn" onclick="copyOutput('encode-output')">コピー</button>
       </div>
+      <div class="result-actions">
+        <button class="reverse-btn" onclick="sendToOtherMode('encode')">結果を文字に変換</button>
+        <button class="reverse-btn share-link-btn" onclick="copyShareLink()">解読リンクをコピー</button>
+      </div>
+      <div id="share-status" class="share-status" role="status" aria-live="polite"></div>
       <div class="share-panel is-disabled" id="encode-share">
         <div class="share-label">結果を共有</div>
         <div class="share-buttons">
@@ -89,12 +103,17 @@
     <div id="table-body" style="display:none">
       <div class="dakuten-note">
         💡 濁点・半濁点のある文字（が、ば、ぱ など）は、元の絵文字の後ろに <strong>"</strong> または <strong>'</strong> をつけます。<br>
-        例：らくてん → 🎒🐨🐱🍅"🧸🌙🥁🔥🦑🌙🥁🍑🛷🍅（楽天 ＝ ら・く・て・ん → て" = で）
+        小さい文字（ゃ、っ など）は <strong>^</strong> がつきます。<br>
+        例：らくてん → 🎒🐻✋🆖
       </div>
       <div class="table-controls">
         <button class="ctrl-btn" id="edit-btn" onclick="toggleEditMode()">カスタマイズ</button>
         <button class="ctrl-btn reset-btn" id="reset-btn" onclick="resetCipher()" style="display:none">デフォルトに戻す</button>
+        <button class="ctrl-btn" onclick="exportCipher()">設定を書き出す</button>
+        <label class="ctrl-btn import-btn" for="cipher-import">設定を読み込む</label>
+        <input id="cipher-import" class="visually-hidden" type="file" accept="application/json,.json" onchange="importCipher(event)">
       </div>
+      <div id="settings-status" class="settings-status" role="status" aria-live="polite"></div>
       <div class="cipher-grid" id="cipher-grid"></div>
 
       <div class="custom-chars-section">
@@ -123,6 +142,6 @@
   </footer>
 </div>
 
-<script src="script.js?v=20260529"></script>
+<script src="script.js?v=20260906"></script>
 </body>
 </html>
